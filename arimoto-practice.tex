@@ -1,0 +1,790 @@
+% !TEX program = pdflatex
+\documentclass{beamer}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{graphicx}
+\usepackage{hyperref}
+% --- Beamer: force serif (CM) math instead of sans-serif default ---
+\usefonttheme[onlymath]{serif}
+% --- Math + text fonts (math = default Computer Modern serif; text = Times) ---
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{mathrsfs}                  % \mathscr{·}  script
+\usepackage{newtxtext}                 % IEEE-style Times text (math untouched)
+\usepackage{CJK}                       % Chinese: \begin{CJK}{UTF8}{bkai}…\end{CJK}
+\usepackage{BOONDOX-cal}               % \mathcal{·}  Boondox calligraphic
+\DeclareMathAlphabet{\mathpzc}{OT1}{pzc}{m}{it} % \mathpzc{·}  Zapf Chancery italic
+\newfont{\bg}{cmr10 scaled\magstep5}   % \bg 0  oversized CMR digit
+\usepackage{booktabs}
+\usepackage{array}
+% Set theme to "Madrid" and customize appearance
+\usetheme{Madrid}
+\usecolortheme{beaver} % Red theme
+\setbeamertemplate{navigation symbols}{}
+
+% Title fields
+\title{\LARGE Channel Capacity of Arbitrary Discrete Memoryless Channels}
+\subtitle{\large Detailed Deduction of Arimoto's Algorithm}
+\author{\Large Jyun-Hong Pan}
+\institute{\Large National Cheng Kung University \\ Department of Engineering Science}
+\date{\Large June, 2026}
+
+\usepackage{graphicx}
+\setbeamertemplate{headline}{%
+    \leavevmode%
+    \hbox{%
+        \begin{beamercolorbox}[wd=0.87\paperwidth,ht=0.25cm,dp=1ex,center]{section in head/foot}%
+            \color{white} \hspace{1em} \text{Information Theory - Arimoto's Channel Capacity}
+        \end{beamercolorbox}%
+        \setbeamercolor{nckufooter}{bg=white, fg=black}
+        \begin{beamercolorbox}[wd=0.09\paperwidth,ht=0.25ex,dp=-6ex,center]{nckufooter}%
+        	\tiny  \ \ \  CNLAB
+        \end{beamercolorbox}%
+        \begin{beamercolorbox}[wd=0.03\paperwidth,ht=0.25cm,dp=0.5ex,center]{nckufooter}%
+        \vspace{-0.08cm}
+        \includegraphics[height=0.3cm]{Images/ncku-logo1.png}
+        \end{beamercolorbox}%
+    }%
+}
+\setbeamertemplate{footline}{
+    \leavevmode%
+    \hbox{%
+        \begin{beamercolorbox}[wd=0.37\paperwidth,ht=2.2ex,dp=1ex,center]{author in head/foot}%
+            \tiny Jyun-Hong Pan (ES, NCKU)
+        \end{beamercolorbox}%
+        \begin{beamercolorbox}[wd=0.36\paperwidth,ht=2.2ex,dp=1ex,center]{title in head/foot}%
+            \tiny  N987100 Information Theory
+        \end{beamercolorbox}%
+        \begin{beamercolorbox}[wd=0.34\paperwidth,ht=2.2ex,dp=1ex,center]{date in head/foot}%
+            \tiny June, 2026 \hspace{1em} Page \insertframenumber/\inserttotalframenumber
+        \end{beamercolorbox}
+    }%
+    \vskip0pt%  
+}
+\setbeamerfont{section in toc}{size=\large}
+\setbeamerfont{subsection in toc}{size=\normalsize}
+\setbeamerfont{frametitle}{size=\Large}
+\setbeamertemplate{frametitle}{%
+    \vspace{-0.15cm}
+    \begin{beamercolorbox}[wd=\paperwidth,ht=0.5cm,dp=0.2ex,left]{frametitle}
+        \hspace{0.4em} \raisebox{0.2ex}{\textbf{\insertframetitle}}
+    \end{beamercolorbox}
+}
+
+\begin{document}
+
+% ====================== Title Page ======================
+\begin{frame}
+    \vspace{0.5cm}
+    \titlepage
+    \begin{flushright}
+        \vspace{-2.0cm} \hspace{9.4cm}
+        \includegraphics[width=2.3cm]{Images/ncku-logo1.png}
+    \end{flushright}
+\end{frame}
+
+% ====================== Outline ======================
+\begin{frame}[t]{Outline}
+    \tableofcontents
+\end{frame}
+
+% ============================================================
+\section{Definitions and Problem Statement}
+% ============================================================
+
+\begin{frame}{Symbol Definitions}
+    \begin{block}{Basic Symbols}
+        \begin{center}
+        \begin{tabular}{cl}
+            \toprule
+            \textbf{Symbol} & \textbf{Meaning} \\
+            \midrule
+            $X$ & Input random variable ($n$ discrete values) \\
+            $Y$ & Output random variable ($m$ discrete values) \\
+            $p(x_j)$ & Probability of input at $x_j$ \\
+            $p(y_i)$ & Probability of output at $y_i$ \\
+            $p(x_j, y_i)$ & Joint probability at $(x_j, y_i)$ \\
+            $p(y_i \mid x_j)$ & Forward conditional probability (channel) \\
+            $p(x_j \mid y_i)$ & Backward conditional probability (posterior) \\
+            \bottomrule
+        \end{tabular}
+        \end{center}
+    \end{block}
+\end{frame}
+
+\begin{frame}{Entropy and Mutual Information}
+    \begin{block}{Entropy of Input}
+        $$
+        H(X) = \sum_{j=1}^{n} -p(x_j) \log\bigl(p(x_j)\bigr)
+        $$
+    \end{block}
+
+    \begin{block}{Conditional Entropy $H(X \mid Y)$}
+        $$
+        H(X \mid Y) = \sum_{i=1}^{m} \sum_{j=1}^{n} -p(y_i \mid x_j)\, p(x_j)\, \log\!\left( \frac{p(y_i \mid x_j)\, p(x_j)}{\sum_{k=1}^{n} p(y_i \mid x_k)\, p(x_k)} \right)
+        $$
+    \end{block}
+
+    \vspace*{-0.6em}
+    \begin{block}{Mutual Information (non-symmetric: backward / posterior form)}
+        \begin{align*}
+            I(X; Y) &= H(X) - H(X \mid Y) \\
+                    &= \sum_{i=1}^{m} \sum_{j=1}^{n} p(y_i \mid x_j)\, p(x_j) \log \frac{p(x_j \mid y_i)}{p(x_j)}
+        \end{align*}
+    \end{block}
+\end{frame}
+
+    \begin{frame}{Expansion of $H(X) - J(X \mid Y, \phi)$}
+        \vspace*{-0.5em}
+        \begin{block}{Definition of $J(X \mid Y, \phi)$}
+            $$
+            J(X \mid Y, \phi) = \sum_{i=1}^{m} \sum_{j=1}^{n} -p(y_i \mid x_j) p(x_j) \log \phi(x_j \mid y_i)
+            $$
+        \end{block}
+
+        \vspace*{-1.4em}
+        \small
+        \setlength{\jot}{1pt}
+        \begin{align*}
+            H(X) - J(X \mid Y, \phi)
+            &= \sum_{j=1}^{n} -p(x_j) \log p(x_j) \\
+            &\quad - \left( \sum_{i=1}^{m} \sum_{j=1}^{n} -p(y_i \mid x_j) p(x_j) \log \phi(x_j \mid y_i) \right) \\
+            &= \sum_{i=1}^{m} \sum_{j=1}^{n} p(y_i \mid x_j) p(x_j) \log \phi(x_j \mid y_i) \\
+            &\quad - \sum_{i=1}^{m} \sum_{j=1}^{n} p(y_i \mid x_j) p(x_j) \log p(x_j) \\
+            &= \sum_{i=1}^{m} \sum_{j=1}^{n} p(y_i \mid x_j) p(x_j) \log \frac{\phi(x_j \mid y_i)}{p(x_j)}
+        \end{align*}
+    \end{frame}
+
+    \begin{frame}{Expansion of $H(X) - J(X \mid Y, \phi^t)$ at Iteration $t$}
+        \vspace*{-0.5em}
+        \begin{block}{Definition of $J(X \mid Y, \phi^t)$}
+            $$
+            J(X \mid Y, \phi^t) = \sum_{i=1}^{m} \sum_{j=1}^{n} -p(y_i \mid x_j) p^t(x_j) \log \phi^t(x_j \mid y_i)
+            $$
+        \end{block}
+
+        \vspace*{-1.4em}
+        \small
+        \setlength{\jot}{1pt}
+        \begin{align*}
+            H(X) - J(X \mid Y, \phi^t)
+            &= \sum_{j=1}^{n} -p^t(x_j) \log p^t(x_j) \\
+            &\quad - \left( \sum_{i=1}^{m} \sum_{j=1}^{n} -p(y_i \mid x_j) p^t(x_j) \log \phi^t(x_j \mid y_i) \right) \\
+            &= \sum_{i=1}^{m} \sum_{j=1}^{n} p(y_i \mid x_j) p^t(x_j) \log \phi^t(x_j \mid y_i) \\
+            &\quad - \sum_{i=1}^{m} \sum_{j=1}^{n} p(y_i \mid x_j) p^t(x_j) \log p^t(x_j) \\
+            &= \sum_{i=1}^{m} \sum_{j=1}^{n} p(y_i \mid x_j) p^t(x_j) \log \frac{\phi^t(x_j \mid y_i)}{p^t(x_j)}
+        \end{align*}
+    \end{frame}
+
+% ============================================================
+\section{Iterative Algorithm of Computation}
+% ============================================================
+
+\begin{frame}{The Three-Step Iterative Algorithm}
+    \begin{block}{Step 1: Initialization}
+        Set the input distribution to be uniform:
+        $$
+            p^0(x_1) = p^0(x_2) = \cdots = p^0(x_n) = \frac{1}{n}
+        $$
+        Let $t = 0, 1, 2, \ldots$ denote the iteration index.
+    \end{block}
+
+    \begin{block}{Step 2: Update $\phi^t$ and Compute $C(t,t)$}
+        Fix $p^t(x_j)$, find the optimal $\phi^t$:
+        $$
+            \phi^t(x_j \mid y_i) = \left[ \frac{p(y_i \mid x_j)\, p^t(x_j)}{\sum_{k=1}^{n} p(y_i \mid x_k)\, p^t(x_k)} \right]_{\forall\, i,j}
+        $$
+    \end{block}
+\end{frame}
+
+\begin{frame}{Step 2 (cont.): Compute Capacity $C(t,t)$}
+    \begin{block}{Capacity at iteration $t$}
+        \begin{align*}
+            C(t,t) &= H(X) - H(X \mid Y) \\
+                   &= \sum_{j=1}^{n} -p^t(x_j) \log p^t(x_j) \\
+                   &\quad - \sum_{i=1}^{m}\sum_{j=1}^{n} -p(y_i \mid x_j)\, p^t(x_j) \log \frac{p(y_i\mid x_j)\, p^t(x_j)}{\sum_k p(y_i \mid x_k)\, p^t(x_k)}
+        \end{align*}
+    \end{block}
+
+    \begin{exampleblock}{Interpretation}
+        Since $\phi^t$ is already optimal at $p^t$, we get $J = H(X \mid Y)$. So $C(t,t)$ is the true mutual information at the current $p^t$.
+    \end{exampleblock}
+\end{frame}
+
+\begin{frame}{Step 3: Update $p^{t+1}(x_j)$ via Lagrange}
+    Now fix $\phi^t$ and maximize over $\{p(x_j)\}$ subject to $\sum_j p(x_j) = 1$.
+
+    \begin{block}{Lagrangian Function}
+        \begin{align*}
+            F &= \sum_{j=1}^n -p^t(x_j) \log p^t(x_j) \\
+              &\quad - \sum_{i,j} -p(y_i \mid x_j)\, p^t(x_j) \log \phi^t(x_j \mid y_i) \\
+              &\quad + \lambda \Bigl( 1 - \sum_{j=1}^{n} p^t(x_j) \Bigr)
+        \end{align*}
+    \end{block}
+
+    \begin{block}{Stationarity Conditions}
+        $$
+            \frac{\partial F}{\partial p^t(x_j)} = 0, \qquad \frac{\partial F}{\partial \lambda} = 0
+        $$
+    \end{block}
+\end{frame}
+
+\begin{frame}{Step 3: Taking Derivatives}
+    Compute $\partial F / \partial p^t(x_j)$:
+    \begin{align*}
+        \frac{\partial F}{\partial p^t(x_j)} &= -\log p^t(x_j) - p^t(x_j) \cdot \frac{1}{p^t(x_j)} \\
+        &\quad + \sum_{i=1}^{m} p(y_i \mid x_j) \log \phi^t(x_j \mid y_i) - \lambda \\
+        &= -\log p^t(x_j) - 1 + \sum_{i=1}^{m} p(y_i \mid x_j) \log \phi^t(x_j \mid y_i) - \lambda
+    \end{align*}
+
+    \begin{exampleblock}{Setting $\partial F / \partial p^t(x_j) = 0$}
+        $$
+            \log p^{t+1}(x_j) = -1 - \lambda + \sum_{i=1}^{m} p(y_i \mid x_j) \log \phi^t(x_j \mid y_i)
+        $$
+        $$
+            p^{t+1}(x_j) = \exp\!\left( -1 - \lambda + \sum_{i=1}^{m} p(y_i \mid x_j) \log \phi^t(x_j \mid y_i) \right)
+        $$
+    \end{exampleblock}
+\end{frame}
+
+\begin{frame}{Step 3: Solving for $\lambda$}
+    Use the constraint $\sum_{j=1}^{n} p^{t+1}(x_j) = 1$:
+    \begin{align*}
+        \sum_{j=1}^{n} \exp\!\left( -1 - \lambda + \sum_{i=1}^{m} p(y_i \mid x_j) \log \phi^t(x_j \mid y_i) \right) &= 1 \\
+        \exp(-1 - \lambda) \cdot \sum_{j=1}^{n} \exp\!\left( \sum_{i=1}^{m} p(y_i \mid x_j) \log \phi^t(x_j \mid y_i) \right) &= 1
+    \end{align*}
+    $$
+        \exp(-1 - \lambda) = \frac{1}{\sum_{j=1}^{n} \exp\!\left( \sum_{i=1}^{m} p(y_i \mid x_j) \log \phi^t(x_j \mid y_i) \right)}
+    $$
+\end{frame}
+
+\begin{frame}[t]{Step 3: Final Update Rule}
+    \footnotesize
+    \begin{exampleblock}{Define}\vspace{-0.4em}
+        $$
+            r_j^t = \exp\!\left( \sum_{i=1}^{m} p(y_i \mid x_j) \log \phi^t(x_j \mid y_i) \right)
+        $$
+    \end{exampleblock}
+    \vspace{-0.6em}
+    \begin{block}{Update Formula for $p^{t+1}(x_j)$}\vspace{-0.4em}
+        $$
+            \boxed{\; p^{t+1}(x_j) = \frac{r_j^t}{\sum_{j=1}^{n} r_j^t} \;}
+        $$
+    \end{block}
+    \vspace{-0.6em}
+    \begin{block}{Updated Capacity (still uses $\phi^t$)}\vspace{-0.4em}
+        $$
+            \boxed{\; C(t+1, t) = \log \sum_{j=1}^{n} r_j^t \;}
+        $$
+        \vspace{-0.6em}
+
+        Becomes $C(t+1,t+1)$ only after Step 2 of the next iteration recomputes $\phi^{t+1}$.
+    \end{block}
+\end{frame}
+
+\begin{frame}{Derivation of $C(t+1, t) = \log \sum_j r_j^t$}
+    \footnotesize
+    \begin{align*}
+        C(t+1, t) &= \sum_j -p^{t+1}(x_j) \log p^{t+1}(x_j) - \sum_{i,j} -p(y_i \mid x_j)\, p^{t+1}(x_j) \log \phi^t(x_j \mid y_i) \\
+                  &= \sum_j -p^{t+1}(x_j) \log p^{t+1}(x_j) + \sum_j p^{t+1}(x_j) \log r_j^t \\
+                  &= \sum_j p^{t+1}(x_j) \log \frac{r_j^t}{p^{t+1}(x_j)} \\
+                  &= \sum_j \frac{r_j^t}{\sum_k r_k^t} \cdot \log \frac{r_j^t}{\,r_j^t \big/ \sum_k r_k^t\,} \\
+                  &= \frac{\sum_j r_j^t}{\sum_k r_k^t} \cdot \log \sum_j r_j^t = \log \sum_{j=1}^{n} r_j^t
+    \end{align*}
+\end{frame}
+
+% ============================================================
+\section{Proof of Convergence}
+% ============================================================
+
+% \begin{frame}{Convergence: Monotonic Increase}
+%     \begin{exampleblock}{Key Monotonicity Property}
+%         $$
+%             C(0,0) \leq C(1,0) \leq C(1,1) \leq C(2,1) \leq C(2,2) \leq \cdots \leq C(t,t) \leq C(t+1,t) \leq \cdots \leq C(P)
+%         $$
+%         where $C(P)$ is the true channel capacity.
+%     \end{exampleblock}
+
+%     \begin{block}{Why?}
+%         \begin{itemize}
+%             \item \textbf{Step 2} ($\phi$ update) maximizes over $\phi$ $\Rightarrow$ $C(t,t) \geq C(t, t-1)$
+%             \item \textbf{Step 3} ($p(x)$ update) maximizes over $p(x)$ $\Rightarrow$ $C(t+1,t) \geq C(t,t)$
+%             \item Each iteration is a monotonic improvement.
+%         \end{itemize}
+%     \end{block}
+% \end{frame}
+
+% \begin{frame}{Convergence: Upper Bound via Relative Entropy}
+%     Let $p^0(x_j)$ be the \textbf{true optimal solution}. One can show:
+%     $$
+%         C(P) - C(t+1, t) \leq \sum_{j=1}^{n} p^0(x_j) \log \frac{p^{t+1}(x_j)}{p^t(x_j)}
+%     $$
+%     (since the relative-entropy term that appears is non-negative).
+
+%     \begin{block}{Telescoping Sum over $t = 1, \ldots, N$}
+%         \begin{align*}
+%             \sum_{t=1}^{N} \bigl[ C(P) - C(t+1, t) \bigr] &\leq \sum_j p^0(x_j) \log \frac{p^{N+1}(x_j)}{p^1(x_j)} \\
+%             &\leq \sum_j p^0(x_j) \log \frac{p^0(x_j)}{p^1(x_j)}
+%         \end{align*}
+%         (the right side is a \textbf{finite} constant).
+%     \end{block}
+% \end{frame}
+
+% \begin{frame}{Convergence: Final Conclusion}
+%     \begin{block}{The Bound is Finite}
+%         Since $\sum_{t=1}^{N} [C(P) - C(t+1, t)]$ is bounded above, and each term $C(P) - C(t+1, t) \geq 0$:
+%         $$
+%             C(P) - C(t+1, t) \to 0 \quad \text{as } t \to \infty
+%         $$
+%     \end{block}
+
+%     \begin{exampleblock}{Convergence Theorem}
+%         $$
+%             \boxed{\; \lim_{t \to \infty} C(t+1, t) = \lim_{t \to \infty} C(t, t) = C(P) \;}
+%         $$
+%         The iterative algorithm always converges to the true channel capacity.
+%     \end{exampleblock}
+% \end{frame}
+
+% ============================================================
+\section{Example: 3$\times$3 Asymmetric Channel}
+% ============================================================
+
+\begin{frame}{Problem Setup: A $3 \times 3$ Channel}
+    \begin{block}{Channel Transition Matrix $P(Y \mid X)$}
+        $$
+            P =
+            \begin{bmatrix}
+                p(y_1 \mid x_1) & p(y_1 \mid x_2) & p(y_1 \mid x_3) \\
+                p(y_2 \mid x_1) & p(y_2 \mid x_2) & p(y_2 \mid x_3) \\
+                p(y_3 \mid x_1) & p(y_3 \mid x_2) & p(y_3 \mid x_3)
+            \end{bmatrix}
+            =
+            \begin{bmatrix}
+                0.6 & 0.7 & 0.5 \\
+                0.3 & 0.1 & 0.05 \\
+                0.1 & 0.2 & 0.45
+            \end{bmatrix}
+        $$
+    \end{block}
+
+    \begin{alertblock}{This is NOT symmetric}
+        Rows are not permutations of each other $\Rightarrow$ uniform input is \textbf{not} optimal.
+    \end{alertblock}
+
+    \begin{block}{Initialization}
+        $$
+            p^0(x_1) = p^0(x_2) = p^0(x_3) = \tfrac{1}{3}
+        $$
+    \end{block}
+\end{frame}
+
+\begin{frame}[t]{Iteration Loop Summary}
+    \footnotesize
+    \begin{exampleblock}{For each iteration $t = 0, 1, 2, \ldots$}
+        \textbf{(1) Compute backward matrix $\phi^t$:}\vspace{-0.3em}
+        $$
+            \phi^t(x_j \mid y_i) = \frac{p(y_i \mid x_j)\, p^t(x_j)}{\sum_{k=1}^{3} p(y_i \mid x_k)\, p^t(x_k)}
+        $$
+        \vspace{-1.4em}
+
+        \textbf{(2) Compute $r_j^t$:}\vspace{-0.3em}
+        $$
+            r_j^t = \exp\!\left( \sum_{i=1}^{3} p(y_i \mid x_j) \log \phi^t(x_j \mid y_i) \right)
+        $$
+        \vspace{-1.4em}
+
+        \textbf{(3) Update input distribution:}\vspace{-0.3em}
+        $$
+            p^{t+1}(x_j) = \frac{r_j^t}{\sum_{j=1}^{3} r_j^t}
+        $$
+        \vspace{-1.4em}
+
+        \textbf{(4) Capacity now (with the old $\phi^t$):}\vspace{-0.3em}
+        $$
+            C(t+1, t) = \log \sum_{j=1}^{3} r_j^t
+        $$
+        \vspace{-1.4em}
+
+        \textbf{(5) Capacity after the next $\phi$-update $\phi^{t+1}$ (step (1) of iteration $t{+}1$):}\vspace{-0.3em}
+        $$
+            C(t+1, t+1) = \sum_{i,j} p(y_i \mid x_j)\, p^{t+1}(x_j) \log \frac{\phi^{t+1}(x_j \mid y_i)}{p^{t+1}(x_j)}
+        $$
+    \end{exampleblock}
+\end{frame}
+
+% ---------- Worked numerical iterations (t = 0, 1, 2) ----------
+\begin{frame}{Iteration $t=0$: Compute $\phi^0$ and $C(0,0)$}
+    \footnotesize
+    \textit{All logarithms natural (units: nats).}\quad $p^0=\bigl(\tfrac13,\tfrac13,\tfrac13\bigr)$.
+    \medskip
+
+    \textbf{(1) Output marginals } $q(y_i)=\sum_k p(y_i\mid x_k)\,p^0(x_k)$:
+    \begin{align*}
+        q(y_1)&=(0.6+0.7+0.5)\tfrac13=0.6000, &
+        q(y_2)&=(0.3+0.1+0.05)\tfrac13=0.1500,\\
+        q(y_3)&=(0.1+0.2+0.45)\tfrac13=0.2500. &&
+    \end{align*}
+
+    \textbf{(2) Backward matrix } $\phi^0(x_j\mid y_i)=\dfrac{p(y_i\mid x_j)\,p^0(x_j)}{q(y_i)}$,\;
+    e.g.\ $\phi^0(x_1\mid y_1)=\dfrac{0.6\cdot\frac13}{0.6}=0.3333$:
+    $$
+    \phi^0=
+    \begin{bmatrix}
+        0.3333 & 0.3889 & 0.2778 \\
+        0.6667 & 0.2222 & 0.1111 \\
+        0.1333 & 0.2667 & 0.6000
+    \end{bmatrix}\ (\text{rows }y_i,\ \text{cols }x_j)
+    $$
+
+    \textbf{(3) Capacity at $p^0$:}
+    $$
+    C(0,0)=\sum_{i,j} p(y_i\mid x_j)\,p^0(x_j)\,\ln\frac{\phi^0(x_j\mid y_i)}{p^0(x_j)}=0.0858
+    $$
+\end{frame}
+
+\begin{frame}{Iteration $t=0$: Update $p^1$ and $C(1,0)$}
+    \footnotesize
+    \textbf{(1) Compute } $r_j^0=\exp\!\Bigl(\sum_i p(y_i\mid x_j)\ln\phi^0(x_j\mid y_i)\Bigr)$,\\
+    e.g.\ $r_1^0=\exp\bigl(0.6\ln0.3333+0.3\ln0.6667+0.1\ln0.1333\bigr)=\exp(-0.9823)=0.3745$:
+    $$
+    r^0=(0.3745,\ 0.3410,\ 0.3752),\qquad \textstyle\sum_j r_j^0=1.0907.
+    $$
+
+    \textbf{(2) Normalize } $p^1(x_j)=r_j^0\big/\sum_j r_j^0$:
+    $$
+    p^1=\Bigl(\tfrac{0.3745}{1.0907},\ \tfrac{0.3410}{1.0907},\ \tfrac{0.3752}{1.0907}\Bigr)=(0.3433,\ 0.3126,\ 0.3440).
+    $$
+
+    \textbf{(3) Updated capacity:}
+    $$
+    C(1,0)=\ln\textstyle\sum_j r_j^0=\ln 1.0907=0.0868\quad(>C(0,0)).
+    $$
+\end{frame}
+
+\begin{frame}{Iteration $t=1$: Compute $\phi^1$ and $C(1,1)$}
+    \footnotesize
+    $p^1=(0.3433,\ 0.3126,\ 0.3440)$.
+    \medskip
+
+    \textbf{(1) Output marginals } $q(y_i)=\sum_k p(y_i\mid x_k)\,p^1(x_k)$:
+    $$
+    q(y_1)=0.5969,\quad q(y_2)=0.1515,\quad q(y_3)=0.2517.
+    $$
+
+    \textbf{(2) Backward matrix } $\phi^1(x_j\mid y_i)=\dfrac{p(y_i\mid x_j)\,p^1(x_j)}{q(y_i)}$,\;
+    e.g.\ $\phi^1(x_1\mid y_1)=\dfrac{0.6\cdot0.3433}{0.5969}=0.3451$:
+    $$
+    \phi^1=
+    \begin{bmatrix}
+        0.3451 & 0.3667 & 0.2882 \\
+        0.6800 & 0.2064 & 0.1136 \\
+        0.1364 & 0.2484 & 0.6151
+    \end{bmatrix}\ (\text{rows }y_i,\ \text{cols }x_j)
+    $$
+
+    \textbf{(3) Capacity at $p^1$:}\quad $C(1,1)=0.0878\quad(>C(1,0)).$
+\end{frame}
+
+\begin{frame}{Iteration $t=1$: Update $p^2$ and $C(2,1)$}
+    \footnotesize
+    \textbf{(1) Compute $r_j^1$:}
+    $$
+    r^1=(0.3855,\ 0.3203,\ 0.3869),\qquad \textstyle\sum_j r_j^1=1.0927.
+    $$
+
+    \textbf{(2) Normalize } $p^2(x_j)=r_j^1\big/\sum_j r_j^1$:
+    $$
+    p^2=\Bigl(\tfrac{0.3855}{1.0927},\ \tfrac{0.3203}{1.0927},\ \tfrac{0.3869}{1.0927}\Bigr)=(0.3528,\ 0.2931,\ 0.3541).
+    $$
+
+    \textbf{(3) Updated capacity:}
+    $$
+    C(2,1)=\ln 1.0927=0.0887\quad(>C(1,1)).
+    $$
+\end{frame}
+
+\begin{frame}{Iteration $t=2$: Compute $\phi^2$ and $C(2,2)$ --- stop here}
+    \footnotesize
+    $p^2=(0.3528,\ 0.2931,\ 0.3541)$.
+    \medskip
+
+    \textbf{(1) Output marginals } $q(y_i)=\sum_k p(y_i\mid x_k)\,p^2(x_k)$:
+    $$
+    q(y_1)=0.5939,\quad q(y_2)=0.1529,\quad q(y_3)=0.2533.
+    $$
+
+    \textbf{(2) Backward matrix } $\phi^2(x_j\mid y_i)=\dfrac{p(y_i\mid x_j)\,p^2(x_j)}{q(y_i)}$,\;
+    e.g.\ $\phi^2(x_1\mid y_1)=\dfrac{0.6\cdot0.3528}{0.5939}=0.3564$:
+    $$
+    \phi^2=
+    \begin{bmatrix}
+        0.3564 & 0.3455 & 0.2981 \\
+        0.6924 & 0.1918 & 0.1158 \\
+        0.1393 & 0.2315 & 0.6292
+    \end{bmatrix}\ (\text{rows }y_i,\ \text{cols }x_j)
+    $$
+
+    \textbf{(3) Capacity at $p^2$:}\quad $C(2,2)=0.0896\quad(>C(2,1)).$
+    \medskip
+
+    \alert{The pattern is now clear:}\ $p(x_2)$ keeps shrinking; $p(x_1),p(x_3)$ keep growing; $C$ rises at every half-step. The same two moves ($\phi$-update, $p$-update) just repeat until convergence.
+\end{frame}
+
+\begin{frame}{Summary of the First Three Iterations}
+    \footnotesize
+    \textbf{Capacity increases monotonically (nats):}
+    \begin{center}
+        \begin{tabular}{lcc}
+            \toprule
+            After computing & Capacity & Value \\
+            \midrule
+            $\phi^0$ ($t=0$) & $C(0,0)$ & 0.0858 \\
+            $p^1$   ($t=0$) & $C(1,0)$ & 0.0868 \\
+            $\phi^1$ ($t=1$) & $C(1,1)$ & 0.0878 \\
+            $p^2$   ($t=1$) & $C(2,1)$ & 0.0887 \\
+            $\phi^2$ ($t=2$) & $C(2,2)$ & 0.0896 \\
+            \bottomrule
+        \end{tabular}
+    \end{center}
+    \medskip
+
+    \textbf{The rule the audience can now see:}
+    $$
+    C(0,0)\le C(1,0)\le C(1,1)\le C(2,1)\le C(2,2)\le\cdots
+    $$
+    The $\phi$-update (optimize $\phi$) and the $p$-update (optimize $p$) each never decrease $C$, so the algorithm climbs steadily to capacity (full convergence table follows).
+\end{frame}
+
+\begin{frame}{Stopping Criterion}
+    \begin{block}{Convergence Test}
+        Stop iterating when
+        $$
+            \bigl| C(t+1, t+1) - C(t, t) \bigr| < \varepsilon
+        $$
+        where $\varepsilon = 10^{-6}$ (project requirement).
+    \end{block}
+
+    \begin{alertblock}{Note}
+        \begin{itemize}
+            \item Convergence is guaranteed but can be slow.
+            \item Each iteration is $O(nm)$ in operations.
+            \item Far more efficient than direct optimization over the $(n-1)$-dim simplex.
+        \end{itemize}
+    \end{alertblock}
+\end{frame}
+
+\begin{frame}{Numerical Results: Convergence Table}
+    \begin{table}
+        \centering
+        \footnotesize
+        \begin{tabular}{rcccc}
+            \toprule
+            $t$  & $C(t, t)$ [nats] & $p(x_1)$ & $p(x_2)$ & $p(x_3)$ \\
+            \midrule
+            1    & 0.087757 & 0.34332 & 0.31265     & 0.34404 \\
+            10   & 0.099720 & 0.41194 & 0.17337     & 0.41469 \\
+            20   & 0.105998 & 0.45461 & 0.089962    & 0.45543 \\
+            30   & 0.108968 & 0.47696 & 0.047113    & 0.47593 \\
+            40   & 0.110442 & 0.48865 & 0.024857    & 0.4865  \\
+            50   & 0.111198 & 0.49479 & 0.013176    & 0.49203 \\
+            60   & 0.111592 & 0.49805 & 0.0070022   & 0.49495 \\
+            70   & 0.111800 & 0.49977 & 0.0037268   & 0.4965  \\
+            80   & 0.111910 & 0.50069 & 0.001985    & 0.49733 \\
+            90   & 0.111968 & 0.50118 & 0.0010578   & 0.49776 \\
+            100  & 0.111999 & 0.50144 & 0.00056377  & 0.498   \\
+            110  & 0.112016 & 0.50158 & 0.00030052  & 0.49812 \\
+            115  & 0.112021 & 0.50162 & 0.00021942  & 0.49816 \\
+            \bottomrule
+        \end{tabular}
+    \end{table}
+\end{frame}
+
+\begin{frame}{Converged Result}
+    \begin{exampleblock}{Final Optimal Input Distribution}
+        $$
+            p(x_1) = 0.50162,\quad p(x_2) = 2.19\!\times\!10^{-4},\quad p(x_3) = 0.49816
+        $$
+    \end{exampleblock}
+
+    \begin{block}{Channel Capacity}
+        $$
+            \boxed{\; C = 0.11202~\text{nats/use} \;=\; 0.16161~\text{bits/use} \;}
+        $$
+    \end{block}
+
+    \begin{alertblock}{Key Observation}
+        \begin{itemize}
+            \item Optimal $p(x_2) \approx 0$: symbol $x_2$ should \textbf{almost never be used}!
+            \item Symbols $x_1$ and $x_3$ share the input mass nearly equally.
+            \item A ternary input can convey at most $\log 3 = 1.099$ nats ($1.585$ bits), and only over a noiseless channel; this noisy, asymmetric channel reaches just $0.112$ nats.
+        \end{itemize}
+    \end{alertblock}
+\end{frame}
+
+\begin{frame}{Why is $p(x_2) \approx 0$?}
+    \begin{block}{Inspect Column 2 of $P(Y \mid X)$}
+        $$
+            P(Y \mid x_2) = \begin{bmatrix} 0.7 \\ 0.1 \\ 0.2 \end{bmatrix}
+        $$
+        Compare to $P(Y \mid x_1) = (0.6, 0.3, 0.1)^\top$ and $P(Y \mid x_3) = (0.5, 0.05, 0.45)^\top$.
+    \end{block}
+
+    \begin{exampleblock}{Insight}
+        \begin{itemize}
+            \item Output of $x_2$ is statistically very similar to a mixture of $x_1$ and $x_3$.
+            \item Using $x_2$ provides little extra information beyond what $x_1, x_3$ already give.
+            \item Optimal coding strategy: \textbf{abandon the redundant symbol}.
+        \end{itemize}
+    \end{exampleblock}
+\end{frame}
+
+% ============================================================
+\section{Summary}
+% ============================================================
+
+\begin{frame}{Summary of Arimoto's Algorithm}
+    \begin{block}{Core Insight}
+        Two-variable joint optimization $\Rightarrow$ alternating maximization
+        \begin{itemize}
+            \item Inner: $\phi^t(x_j \mid y_i) = \dfrac{p(y_i \mid x_j)\, p^t(x_j)}{\sum_k p(y_i \mid x_k)\, p^t(x_k)}$
+            \item Outer: $p^{t+1}(x_j) = \dfrac{r_j^t}{\sum_j r_j^t}$
+        \end{itemize}
+    \end{block}
+
+    \begin{block}{Key Properties}
+        \begin{itemize}
+            \item Monotonic increase: $C(t, t) \nearrow C(P)$
+            \item Provably convergent to global optimum (convexity of mutual information in $p(x)$ for fixed $p(y \mid x)$)
+            \item Simple to implement, only matrix-vector operations
+        \end{itemize}
+    \end{block}
+\end{frame}
+
+\begin{frame}{Recap of Important Formulas}
+    \footnotesize
+    \begin{block}{The 4 Essential Equations}
+        $$
+            \phi^t(x_j \mid y_i) = \frac{p(y_i \mid x_j)\, p^t(x_j)}{\sum_k p(y_i \mid x_k)\, p^t(x_k)}
+        $$
+        $$
+            r_j^t = \exp\!\left( \sum_{i=1}^{m} p(y_i \mid x_j) \log \phi^t(x_j \mid y_i) \right)
+        $$
+        $$
+            p^{t+1}(x_j) = \frac{r_j^t}{\sum_j r_j^t}
+        $$
+        $$
+            C(t+1, t) = \log \sum_{j=1}^{n} r_j^t
+        $$
+    \end{block}
+\end{frame}
+
+\begin{frame}{References}
+    \begin{thebibliography}{9}
+        \bibitem{arimoto1972}
+        S.~Arimoto, ``An algorithm for computing the capacity of arbitrary discrete memoryless channels,'' \emph{IEEE Trans. Inf. Theory}, vol.~18, no.~1, pp.~14--20, 1972.
+
+        \bibitem{xiong}
+        C.~Xiong, L.~Pei, T.-K.~Truong, ``Detailed Deduction on Arimoto's Channel Capacity Computation.''
+
+        \bibitem{cover}
+        T.~M.~Cover and J.~A.~Thomas, \emph{Elements of Information Theory}, 2nd ed., Wiley, 2006.
+    \end{thebibliography}
+\end{frame}
+
+% ====================== Appendix ======================
+\appendix
+\section*{Appendix: Decoupling via the Auxiliary Distribution}
+
+\begin{frame}{Appendix: The Coupling Problem}
+    \begin{block}{Expanding $I(X;Y) = H(X) - H(X \mid Y)$}
+        Starting from
+        $$
+            I(X;Y) = \sum_{x,y} p(x)\,p(y\mid x) \log \frac{p(x\mid y)}{p(x)},
+        $$
+        substitute Bayes' rule $p(x\mid y) = \dfrac{p(x)\,p(y\mid x)}{\sum_{x'} p(x')\,p(y\mid x')}$:
+        $$
+            I(X;Y) = \sum_{x,y} p(x)\,p(y\mid x)\, \log \frac{p(y\mid x)}{\sum_{x'} p(x')\,p(y\mid x')}.
+        $$
+    \end{block}
+
+    \begin{alertblock}{Source of Coupling}
+        The denominator $\sum_{x'} p(x')\,p(y\mid x')$ \textbf{locks all input probabilities inside the same log}: differentiating w.r.t.\ any single $p(x_j)$ yields a nonlinear system — no closed-form solution by direct optimization.
+    \end{alertblock}
+\end{frame}
+
+\begin{frame}{Appendix: Variational Lower Bound via $\phi(x \mid y)$}
+    \begin{block}{Introduce an Auxiliary Distribution $\phi(x \mid y)$}
+        Consider the gap between the true mutual information and a $\phi$-based surrogate:
+        $$
+            I(X;Y) - \sum_{x,y} p(x)\,p(y\mid x) \log \frac{\phi(x\mid y)}{p(x)} = \sum_{x,y} p(x)\,p(y\mid x) \log \frac{p(x\mid y)}{\phi(x\mid y)}
+        $$
+        The RHS is a \textbf{conditional KL divergence} $\geq 0$, equality iff $\phi(x\mid y) = p(x\mid y)$.
+    \end{block}
+
+    \begin{exampleblock}{Variational Form of Mutual Information}
+        $$
+            I(X;Y) = \max_{\phi}\; \sum_{x,y} p(x)\,p(y\mid x) \log \frac{\phi(x\mid y)}{p(x)}
+        $$
+    \end{exampleblock}
+\end{frame}
+
+\begin{frame}{Appendix: How Decoupling Happens}
+    \begin{block}{Fixing $\phi(x\mid y)$, Maximizing over $p(x)$}
+        With $\phi$ held fixed, the term $\dfrac{\phi(x\mid y)}{p(x)}$ depends on each $p(x_j)$ \textbf{independently}.
+        \begin{itemize}
+            \item The troublesome $\sum_{x'}$ inside the log is \textbf{gone}.
+            \item The stationary condition $\partial / \partial p(x_j) = 0$ separates into one equation per $j$.
+            \item $\Rightarrow$ closed-form update $p^{t+1}(x_j) = r_j^t / \sum_k r_k^t$.
+        \end{itemize}
+    \end{block}
+
+    \begin{alertblock}{Geometric Interpretation (Lagrange)}
+        At the optimum, the gradient of the objective is parallel to the gradient of the simplex constraint $\sum_j p(x_j)=1$. Alternating max over $(p, \phi)$ traces a path of monotonic improvement along this constrained manifold.
+    \end{alertblock}
+\end{frame}
+
+\begin{frame}{Appendix: Proof of the Log-Sum Inequality}
+    \begin{block}{Statement}
+        For nonnegative reals $a_1,\ldots,a_n$ and $b_1,\ldots,b_n$ (with $b_i > 0$):
+        $$
+            \sum_{i=1}^{n} a_i \log \frac{a_i}{b_i} \;\geq\; \Bigl(\sum_{i=1}^{n} a_i\Bigr) \log \frac{\sum_{i=1}^{n} a_i}{\sum_{i=1}^{n} b_i}
+        $$
+        with equality iff $a_i / b_i$ is constant in $i$.
+    \end{block}
+
+    \begin{block}{Proof via Jensen's Inequality}
+        Let $A = \sum_i a_i$, $B = \sum_i b_i$, and define weights $w_i = b_i / B$ (so $\sum_i w_i = 1$). Since $f(t) = t\log t$ is convex on $(0,\infty)$, by Jensen's inequality:
+        $$
+            \sum_i w_i\, f\!\left(\frac{a_i}{b_i}\right) \;\geq\; f\!\left(\sum_i w_i \cdot \frac{a_i}{b_i}\right) = f\!\left(\frac{A}{B}\right).
+        $$
+    \end{block}
+\end{frame}
+
+\begin{frame}{Appendix: Proof of the Log-Sum Inequality (cont.)}
+    \begin{block}{Expand Both Sides}
+        LHS: $\displaystyle \sum_i \frac{b_i}{B} \cdot \frac{a_i}{b_i} \log \frac{a_i}{b_i} = \frac{1}{B} \sum_i a_i \log \frac{a_i}{b_i}$.
+
+        \vspace{0.3em}
+        RHS: $\displaystyle \frac{A}{B} \log \frac{A}{B}$.
+
+        \vspace{0.3em}
+        Multiplying both sides by $B > 0$:
+        $$
+            \sum_i a_i \log \frac{a_i}{b_i} \;\geq\; A \log \frac{A}{B} = \Bigl(\sum_i a_i\Bigr) \log \frac{\sum_i a_i}{\sum_i b_i}. \qquad 
+        $$
+    \end{block}
+
+    \begin{exampleblock}{Equality Condition}
+        Jensen's inequality is tight iff the convex function is evaluated at a single point, i.e.\ $a_i / b_i$ is identical for all $i$ with $w_i>0$.
+    \end{exampleblock}
+\end{frame}
+
+% ====================== End Page ======================
+\begin{frame}
+    \centering
+    \Huge Thank You!\\[1em]
+    \large Questions?
+\end{frame}
+
+\end{document}
